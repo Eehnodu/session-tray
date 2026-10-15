@@ -23,13 +23,13 @@
 
 ---
 
-## 이런 때 씁니다
+## 활용 예시
 
 - 터미널을 여러 개 띄워 두다 보니 **어느 프로젝트의 서버가 몇 번 포트에 떠 있는지** 헷갈릴 때
 - 끈 줄 알았던 `node` · `python` 이 뒤에서 계속 돌며 **메모리를 먹고 있을 때**
 - Claude Code 세션을 여러 개 열어 두고 **지금 어느 폴더에서 무슨 작업이 돌아가는지** 보고 싶을 때
 
-## 할 수 있는 것
+## 주요 기능
 
 | | |
 |---|---|
@@ -40,7 +40,7 @@
 | **바로 동작** | 브라우저로 열기 · 폴더 열기 · 줄 끝 빨간 **종료**(확인 후 그 프로세스만) |
 | **아이콘 상태** | <img src="assets/states.png" height="40" align="center" alt="아이콘 상태"> 점 없음 = 아무것도 안 돎 · 초록 = 서버 있음 · 주황 = 작업만 |
 
-## 받아서 쓰기 (개발 몰라도 됨)
+## 설치
 
 ### Windows
 
@@ -68,7 +68,7 @@
 
 > macOS 판은 자동 빌드 머신에서 실행 · 목록 읽기까지만 확인했고, 실제 맥에서 눈으로 확인하는 중입니다. 이상하면 [이슈](https://github.com/Eehnodu/session-tray/issues)로 알려 주세요.
 
-## 소스로 쓰기 (개발자)
+## 소스 코드로 실행
 
 필요한 것: Python 3.10 이상, git. `uv` 가 있으면 더 빠릅니다.
 
@@ -94,7 +94,7 @@ bash install.sh
 | `python session_tray.pyw --window --demo` | 예시 데이터로 창만 띄우기 |
 | `python session_tray.pyw --selftest` | 화면 없이 점검(목록 읽기 · 아이콘 · tkinter) |
 
-## 쓰는 법
+## 사용 방법
 
 - 아이콘 **우클릭 → 세션 보기**(Windows 는 아이콘 더블클릭도 같다). 창은 5초마다 새로 읽습니다
 - 서버 · 작업 줄 끝의 빨간 **종료** → 확인하면 그 프로세스와 자식만 끕니다. Claude 세션은 Claude 에서 닫으세요
@@ -103,7 +103,7 @@ bash install.sh
 - 아이콘에 마우스를 올리면 개수와 PC 전체 사용량이 보입니다
 - 아이콘 메뉴 **트레이 끄기**: 이 프로그램만 끕니다(돌던 서버 · 작업은 그대로)
 
-## 어떻게 찾나
+## 감지 기준
 
 | 구분 | 기준 |
 |---|---|
@@ -115,17 +115,17 @@ bash install.sh
 - 편집기 · 앱 내부 도구(AppData · `~/Library` · `/Applications` · `.vscode` 등)는 뺍니다
 - 모든 정보는 내 PC 안에서만 읽고, 어디로도 보내지 않습니다
 
-## 문제가 생기면
+## 문제 해결
 
 | 증상 | 확인 |
 |---|---|
 | 아이콘이 안 보임 | Windows: `^` 숨김 아이콘 안을 보세요(끌어서 작업 표시줄로 꺼낼 수 있습니다) |
 | 창이 안 뜸 · 갑자기 꺼짐 | 마지막 오류가 남습니다 — Windows `%LOCALAPPDATA%\session-tray\session_tray.log`, macOS `~/Library/Application Support/session-tray/session_tray.log` |
 | 서버가 목록에 없음 | 사용자 폴더 밖에서 띄웠고 포트도 없으면 안 보입니다 |
-| macOS 에서 "손상되었기 때문에 열 수 없습니다" | 1.0.0 판의 문제입니다 — [최신 판](https://github.com/Eehnodu/session-tray/releases/latest)을 다시 받으세요. 그래도 같으면(개발자) 터미널에서 `xattr -cr "/Applications/Session Tray.app"` 뒤 다시 열기 |
+| macOS 에서 "손상되었기 때문에 열 수 없습니다" | 1.0.0 판의 문제입니다 — [최신 판](https://github.com/Eehnodu/session-tray/releases/latest)을 다시 받으세요. 그래도 같으면 터미널에서 `xattr -cr "/Applications/Session Tray.app"` 뒤 다시 열기 |
 | macOS 에서 tkinter 오류 | Homebrew python 이면 `brew install python-tk`, 또는 python.org 설치본 사용 |
 
-## 버전
+## 버전 기록
 
 | 버전 | 날짜 | 바뀐 것 |
 |---|---|---|
