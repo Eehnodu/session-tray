@@ -53,13 +53,13 @@
 
 ### macOS (시험판)
 
-1. **[SessionTray-macos.zip 내려받기](https://github.com/Eehnodu/session-tray/releases/latest/download/SessionTray-macos.zip)** → 압축을 풀어 `Session Tray.app` 을 `응용 프로그램` 폴더로
-2. 처음 한 번은 **우클릭 → 열기 → 열기** (애플 개발자 서명이 없어 더블클릭으로는 "확인되지 않은 개발자"라며 막힙니다)
-   - **"손상되었기 때문에 열 수 없습니다"** 가 뜨면 터미널에서 아래를 실행한 뒤 다시 엽니다(인터넷에서 받은 파일 표시를 지움)
-     ```bash
-     xattr -cr "/Applications/Session Tray.app"
-     ```
-3. 화면 위 **메뉴 막대**에서 아이콘을 찾아 **세션 보기**
+1. **[SessionTray-macos.zip 내려받기](https://github.com/Eehnodu/session-tray/releases/latest/download/SessionTray-macos.zip)** → 받은 파일을 더블클릭해 압축을 풀고, 나온 `Session Tray` 를 **응용 프로그램** 폴더로 끌어다 놓습니다
+2. `Session Tray` 를 더블클릭합니다. 처음 한 번은 맥이 막습니다(애플 정식 인증을 받지 않은 앱이라서 — 인터넷에서 받은 작은 앱들이 대부분 그렇습니다)
+   - **"악성 코드가 없음을 확인할 수 없습니다"** 창이 뜨면 **완료**(또는 확인)를 누르고
+   - **시스템 설정 → 개인정보 보호 및 보안** 으로 가서 아래쪽 **"Session Tray" 이(가) 차단되었습니다** 옆의 **그래도 열기** → 맥 암호 → **열기**
+   - macOS 14(소노마) 이하라면 `Session Tray` 를 **우클릭 → 열기 → 열기** 로도 됩니다
+   - 한 번 열고 나면 다음부터는 그냥 더블클릭으로 열립니다
+3. 화면 위 **메뉴 막대**(시계 왼쪽)에서 아이콘을 눌러 **세션 보기**
 4. 로그인할 때마다 띄우려면 아이콘 메뉴 → **로그인 시 실행**
 
 > macOS 판은 자동 빌드 머신에서 실행 · 목록 읽기까지만 확인했고, 실제 맥에서 눈으로 확인하는 중입니다. 이상하면 [이슈](https://github.com/Eehnodu/session-tray/issues)로 알려 주세요.
@@ -118,6 +118,7 @@ bash install.sh
 | 아이콘이 안 보임 | Windows: `^` 숨김 아이콘 안을 보세요(끌어서 작업 표시줄로 꺼낼 수 있습니다) |
 | 창이 안 뜸 · 갑자기 꺼짐 | 마지막 오류가 남습니다 — Windows `%LOCALAPPDATA%\session-tray\session_tray.log`, macOS `~/Library/Application Support/session-tray/session_tray.log` |
 | 서버가 목록에 없음 | 사용자 폴더 밖에서 띄웠고 포트도 없으면 안 보입니다 |
+| macOS 에서 "손상되었기 때문에 열 수 없습니다" | 1.0.0 판의 문제입니다 — [최신 판](https://github.com/Eehnodu/session-tray/releases/latest)을 다시 받으세요. 그래도 같으면(개발자) 터미널에서 `xattr -cr "/Applications/Session Tray.app"` 뒤 다시 열기 |
 | macOS 에서 tkinter 오류 | Homebrew python 이면 `brew install python-tk`, 또는 python.org 설치본 사용 |
 
 ## 버전
