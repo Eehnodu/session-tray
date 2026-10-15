@@ -1,0 +1,80 @@
+# 태그(v*)를 올리면 Windows · macOS 실행 파일을 만들어 GitHub Releases 에 붙인다.
+# Actions 탭에서 손으로 돌리면(workflow_dispatch) 만들기 · 점검만 하고 Release 는 만들지 않는다.
+name: build
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 의존성
+        run: python -m pip install -r requirements.txt pyinstaller
+
+      - name: 자체 점검(화면 없이 목록 읽기 · 아이콘 · tkinter)
+        run: python session_tray.pyw --selftest
+
+      - name: 트레이를 8초 띄워 보고 살아 있는지
+        continue-on-error: true
+        shell: python
+        run: |
+          import subprocess, sys, time
+          p = subprocess.Popen([sys.executable, "session_tray.pyw"])
+          time.sleep(8)
+          alive = p.poll() is None
+          p.terminate()
+          print("8초 뒤 트레이 살아 있음:", alive)
+          sys.exit(0 if alive else 1)
+
+      - name: 아이콘 파일
+        run: python session_tray.pyw --export-icons build-icons
+
+      - name: 만들기 (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --name SessionTray --icon build-icons/icon.ico session_tray.pyw
+          Copy-Item dist/SessionTray.exe SessionTray-windows.exe
+
+      - name: 만들기 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          pyinstaller --noconfirm --windowed --name "Session Tray" --icon build-icons/icon.icns --osx-bundle-identifier com.eehnodu.session-tray session_tray.pyw
+          # 메뉴 막대 앱 — Dock 에 아이콘을 띄우지 않는다
+          /usr/libexec/PlistBuddy -c "Add :LSUIElement bool true" "dist/Session Tray.app/Contents/Info.plist"
+          "dist/Session Tray.app/Contents/MacOS/Session Tray" --selftest
+          ditto -c -k --keepParent "dist/Session Tray.app" SessionTray-macos.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: session-tray-${{ runner.os }}
+          path: |
+            SessionTray-windows.exe
+            SessionTray-macos.zip
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: out/*
+          generate_release_notes: true

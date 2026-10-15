@@ -1,0 +1,3 @@
+pystray==0.19.5
+pillow>=10
+psutil>=5.9

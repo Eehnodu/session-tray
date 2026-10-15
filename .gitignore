@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+session_tray.log
+session_tray.ico
+build/
+dist/
+build-icons/
+*.spec
