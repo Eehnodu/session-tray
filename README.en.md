@@ -43,8 +43,8 @@
 | **Usage** | CPU % and memory per item (children included), plus whole-computer usage at the top |
 | **Search** | Type a project name, port or command in the search box to filter instantly |
 | **Quick actions** | Open in browser, open folder, red **Stop** at the end of each row (asks first, stops only that item) |
-| **Alerts** | When a server, job or container stops, or when one item uses a lot of memory (2 GB by default) |
-| **Update alert** | Tells you when a new version is out; get it from the icon menu |
+| **Alerts** | When a server, job or container stops, or when one item uses a lot of memory (2 GB by default). Turn them on with **Show notifications** in the icon menu (off at first) |
+| **Update alert** | When a new version is out, **Get new version** appears in the icon menu |
 | **Icon status** | <img src="assets/states.png" height="40" align="center" alt="Icon states"> no dot = nothing running · green = servers or containers · orange = jobs only |
 | **Language and look** | Korean and English (follows your system language), Windows dark mode, remembers window size and position |
 
@@ -109,7 +109,7 @@ Both scripts create a virtual environment, install the dependencies (`pystray`, 
 - **Double-click a row**: a server opens in the browser, a Claude session opens in the Claude app, anything else opens its folder
 - **Search** box at the top: filters as you type (Esc clears it)
 - Hover over the icon to see the counts and whole-computer usage
-- Icon menu **Notify when something stops**: turns stop alerts on or off (items you stop from the window are not reported)
+- Icon menu **Show notifications**: turns the pop-up notifications (stops, memory, new version) on or off. **They are off at first.** Even when on, items you stop from the window are not reported
 - Icon menu **Quit tray**: closes only this app (your servers and jobs keep running)
 
 ## Settings
@@ -122,7 +122,8 @@ Icon menu → **Open settings file** opens the settings file in Notepad (TextEdi
 | `extra_roots` | `[]` | More folders where you keep projects, for example `["D:/code", "~/work"]` |
 | `active_minutes` | `15` | Show Claude sessions with activity within this many minutes |
 | `refresh_seconds` | `5` | How often the window refreshes |
-| `notify_on_stop` | `true` | Stop alerts |
+| `notifications` | `false` | All notifications (same as **Show notifications** in the tray menu) |
+| `notify_on_stop` | `true` | When notifications are on, also report stops |
 | `memory_alert_mb` | `2048` | Alert when one item uses more than this many MB (at most once an hour; `0` turns it off) |
 | `check_updates` | `true` | Check for a new version once a day (only asks GitHub for the latest version number) |
 
@@ -147,7 +148,7 @@ Icon menu → **Open settings file** opens the settings file in Notepad (TextEdi
 | Window doesn't open or closes suddenly | The last error is saved to Windows `%LOCALAPPDATA%\session-tray\session_tray.log`, macOS `~/Library/Application Support/session-tray/session_tray.log` |
 | A server isn't listed | Without a port and started outside your user folders, it isn't shown. Add that folder to `extra_roots` in the settings |
 | **Open** on a Claude session does nothing | The Claude desktop app needs to be installed |
-| No alerts | Windows: Settings → System → Notifications, and check that notifications for Python (or SessionTray) are on |
+| No alerts | First check that **Show notifications** is on in the icon menu. Windows: Settings → System → Notifications, and check that notifications for Python (or SessionTray) are on |
 | macOS says the app "is damaged and can't be opened" | That was a problem in 1.0.0. Download the [latest version](https://github.com/Eehnodu/session-tray/releases/latest) again. If it still happens, run `xattr -cr "/Applications/Session Tray.app"` in Terminal and open it again |
 | tkinter error on macOS | With Homebrew python, `brew install python-tk`, or use the python.org installer |
 
@@ -155,6 +156,7 @@ Icon menu → **Open settings file** opens the settings file in Notepad (TextEdi
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.1.2 | 2026-10-15 | Notifications are turned on and off with one item, **Show notifications**, in the tray menu, and are off at first |
 | 1.1.1 | 2026-10-15 | Fixed leftover pieces like `exe -m …` in the command column, and Docker not being found by the macOS app opened from Finder or by a tray started before Docker was installed |
 | 1.1.0 | 2026-10-15 | Docker containers, **Open** for Claude sessions, stop and memory alerts, search, update alert, English UI, Windows dark mode, remembered window size and position, settings file |
 | 1.0.1 | 2026-10-15 | macOS: fixed "is damaged and can't be opened" by re-signing the app after the build step that broke its signature, and checking it |

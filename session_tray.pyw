@@ -14,7 +14,7 @@ macOS 는 메뉴 막대 아이콘과 창을 한 프로세스의 메인 스레드
 
 from __future__ import annotations
 
-__version__ = "1.1.1"  # 바꾸면 README(두 언어) 의 버전 기록 · git 태그도 같이
+__version__ = "1.1.2"  # 바꾸면 README(두 언어) 의 버전 기록 · git 태그도 같이
 
 import json
 import os
@@ -87,7 +87,8 @@ DEFAULTS: dict = {
     "extra_roots": [],  # 프로젝트를 두는 폴더를 더 적는다 — 예: ["~/work", "D:/code"]
     "active_minutes": 15,  # Claude 세션: 이 시간 안에 대화가 오간 것만
     "refresh_seconds": 5,  # 창 새로 읽기 간격
-    "notify_on_stop": True,  # 서버 · 작업 · 컨테이너가 꺼지면 알림
+    "notifications": False,  # 화면 오른쪽 아래 알림 전체(꺼짐 · 메모리 · 새 버전) — 트레이 메뉴 "알림 받기"
+    "notify_on_stop": True,  # 알림을 켰을 때: 서버 · 작업 · 컨테이너가 꺼지면 알림
     "memory_alert_mb": 2048,  # 한 항목이 이만큼 넘게 쓰면 알림(0 = 끔)
     "check_updates": True,  # 하루 한 번 새 버전 확인
     "window_geometry": "",  # 창 크기 · 위치(자동 저장)
@@ -186,7 +187,7 @@ TEXT: dict[str, tuple[str, str]] = {
     "m_show": ("세션 보기", "Show sessions"),
     "m_startup_win": ("윈도우 시작 시 실행", "Start with Windows"),
     "m_startup": ("로그인 시 실행", "Open at login"),
-    "m_notify": ("꺼지면 알림", "Notify when something stops"),
+    "m_notify": ("알림 받기", "Show notifications"),
     "m_settings": ("설정 파일 열기", "Open settings file"),
     "m_update": ("새 버전 {v} 받기", "Get new version {v}"),
     "m_quit": ("트레이 끄기", "Quit tray"),
@@ -1009,6 +1010,8 @@ def latest_version() -> str | None:
 
 # ---------------- 알림 ----------------
 def notify(icon, title: str, message: str) -> None:
+    if not SETTINGS.get("notifications", False):
+        return  # 알림을 꺼 두었으면(기본) 띄우지 않는다 — 새 버전은 트레이 메뉴에만 보인다
     try:
         if IS_MAC:
             esc = lambda s: s.replace("\\", "\\\\").replace('"', '\\"')  # noqa: E731
@@ -1071,7 +1074,7 @@ def run_tray() -> None:
         icon.stop()
 
     def toggle_notify(_icon=None, _item=None) -> None:
-        save_settings(notify_on_stop=not SETTINGS.get("notify_on_stop", True))
+        save_settings(notifications=not SETTINGS.get("notifications", False))
         SETTINGS.update(load_settings())
 
     icon = pystray.Icon(
@@ -1085,7 +1088,7 @@ def run_tray() -> None:
             pystray.MenuItem(_("m_show"), lambda _i, _m: show_window(), default=True),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(_("m_startup_win") if IS_WIN else _("m_startup"), lambda _i, _m: toggle_startup(), checked=lambda _m: startup_enabled()),
-            pystray.MenuItem(_("m_notify"), toggle_notify, checked=lambda _m: bool(SETTINGS.get("notify_on_stop", True))),
+            pystray.MenuItem(_("m_notify"), toggle_notify, checked=lambda _m: bool(SETTINGS.get("notifications", False))),
             pystray.MenuItem(_("m_settings"), lambda _i, _m: open_settings()),
             pystray.MenuItem(_("m_quit"), quit_all),  # 이 프로그램만 끈다 — 서버 · 작업은 그대로
         ),
@@ -1184,6 +1187,22 @@ def selftest() -> None:
     w.step([a])
     assert len(w.step([])) == 1
     SETTINGS["notify_on_stop"] = saved
+    # 알림을 꺼 두면 띄우지 않는다(기본값은 끔)
+    assert DEFAULTS["notifications"] is False
+    shown = []
+
+    class _Icon:
+        def notify(self, message, title):
+            shown.append(message)
+
+    saved = SETTINGS.get("notifications")
+    if not IS_MAC:  # macOS 는 osascript 로 띄우므로 이 점검은 Windows · Linux 에서만
+        SETTINGS["notifications"] = False
+        notify(_Icon(), "t", "off")
+        SETTINGS["notifications"] = True
+        notify(_Icon(), "t", "on")
+        assert shown == ["on"], shown
+    SETTINGS["notifications"] = saved
     # 두 언어 문구가 다 있는지
     for k, (ko, en) in TEXT.items():
         assert ko and en, k
