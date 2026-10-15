@@ -58,8 +58,15 @@ jobs:
           pyinstaller --noconfirm --windowed --name "Session Tray" --icon build-icons/icon.icns --osx-bundle-identifier com.eehnodu.session-tray session_tray.pyw
           # 메뉴 막대 앱 — Dock 에 아이콘을 띄우지 않는다
           /usr/libexec/PlistBuddy -c "Add :LSUIElement bool true" "dist/Session Tray.app/Contents/Info.plist"
+          # Info.plist 를 고치면 서명이 깨져 "손상되었기 때문에 열 수 없습니다"가 뜬다 — 고친 뒤 다시 서명(애드혹)하고 검사
+          codesign --force --deep --sign - "dist/Session Tray.app"
+          codesign --verify --deep --strict --verbose=2 "dist/Session Tray.app"
           "dist/Session Tray.app/Contents/MacOS/Session Tray" --selftest
           ditto -c -k --keepParent "dist/Session Tray.app" SessionTray-macos.zip
+          # 사람들이 받는 바로 그 zip 을 풀어 서명을 다시 검사
+          mkdir -p zipcheck && ditto -x -k SessionTray-macos.zip zipcheck
+          codesign --verify --deep --strict --verbose=2 "zipcheck/Session Tray.app"
+          "zipcheck/Session Tray.app/Contents/MacOS/Session Tray" --selftest
 
       - uses: actions/upload-artifact@v4
         with:

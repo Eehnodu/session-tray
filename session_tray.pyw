@@ -13,7 +13,7 @@ macOS 는 메뉴 막대 아이콘과 창을 한 프로세스의 메인 스레드
 
 from __future__ import annotations
 
-__version__ = "1.0.0"  # 바꾸면 README 의 버전 기록 · git 태그도 같이
+__version__ = "1.0.1"  # 바꾸면 README 의 버전 기록 · git 태그도 같이
 
 import json
 import os
