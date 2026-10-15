@@ -10,6 +10,9 @@ on:
 permissions:
   contents: write
 
+env:
+  PYTHONUTF8: "1"  # 한글 출력 — Windows 빌드 머신 콘솔은 영문 코드 페이지
+
 jobs:
   build:
     strategy:

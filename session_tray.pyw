@@ -703,6 +703,10 @@ def run_tray() -> None:
 
 def selftest() -> None:
     """화면 없이 도는 점검 — 빌드 머신(CI)에서 쓴다. 문제가 있으면 예외로 끝난다"""
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # 영문 코드 페이지 콘솔(Windows 빌드 머신)에서도 한글 출력
+    except (AttributeError, ValueError):
+        pass
     import tkinter  # noqa: F401  창에 필요한 tkinter 가 있는지
 
     import pystray  # noqa: F401
