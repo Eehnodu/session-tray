@@ -155,6 +155,7 @@ Icon menu → **Open settings file** opens the settings file in Notepad (TextEdi
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.1.1 | 2026-10-15 | Fixed leftover pieces like `exe -m …` in the command column, and Docker not being found by the macOS app opened from Finder or by a tray started before Docker was installed |
 | 1.1.0 | 2026-10-15 | Docker containers, **Open** for Claude sessions, stop and memory alerts, search, update alert, English UI, Windows dark mode, remembered window size and position, settings file |
 | 1.0.1 | 2026-10-15 | macOS: fixed "is damaged and can't be opened" by re-signing the app after the build step that broke its signature, and checking it |
 | 1.0.0 | 2026-10-15 | First public release: dev servers, background jobs and Claude Code sessions, per-item CPU and memory plus whole-computer usage, Stop and right-click menu on each row, start at login, Windows executable and macOS app |

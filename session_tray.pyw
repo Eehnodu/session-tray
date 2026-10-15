@@ -14,7 +14,7 @@ macOS 는 메뉴 막대 아이콘과 창을 한 프로세스의 메인 스레드
 
 from __future__ import annotations
 
-__version__ = "1.1.0"  # 바꾸면 README(두 언어) 의 버전 기록 · git 태그도 같이
+__version__ = "1.1.1"  # 바꾸면 README(두 언어) 의 버전 기록 · git 태그도 같이
 
 import json
 import os
@@ -322,6 +322,12 @@ def _listening_of(p: psutil.Process) -> set[int]:
     return {c.laddr.port for c in conns if c.status == psutil.CONN_LISTEN and c.laddr and 1024 <= c.laddr.port < 49152}
 
 
+def _short_cmd(cmd: str) -> str:
+    """명령줄 앞의 node · python 실행 파일 경로를 뗀다. C:\\Py\\python.exe -m app → -m app"""
+    short = re.sub(r'^("[^"]*[\\/]|[^"\s]*[\\/])(node|pythonw|python(?:\d+(?:\.\d+)*)?)(\.exe)?"?\s+', "", cmd, flags=re.I)
+    return re.sub(r"\S*node_modules[\\/]\.bin[\\/]+\.\.[\\/]", "", short)
+
+
 def collect_processes() -> list[Row]:
     listen = _listening_all()
     cands: dict[int, tuple[psutil.Process, str, str | None, float, int | None, set[int]]] = {}
@@ -353,8 +359,7 @@ def collect_processes() -> list[Row]:
         except psutil.Error:
             tree = [pid, *kids]
         cpu, mem = usage(tree)
-        short = re.sub(r'^"?[^"\s]*[\\/](node|python[\d.]*|pythonw)(\.exe)?"?\s*', "", cmd, flags=re.I)
-        short = re.sub(r"\S*node_modules[\\/]\.bin[\\/]+\.\.[\\/]", "", short)
+        short = _short_cmd(cmd)
         pname = p.info.get("name") or ""
         rows.append(
             Row(
@@ -376,6 +381,20 @@ def collect_processes() -> list[Row]:
 
 # ---------------- 찾기: Docker ----------------
 _DOCKER_OFF_UNTIL = [0.0]  # Docker 가 없거나 꺼져 있으면 1분 동안 다시 묻지 않는다(매번 느려지지 않게)
+# PATH 에 없을 때 찾아볼 자리 — macOS 는 Finder 로 연 앱의 PATH 에 /usr/local/bin 이 없고,
+# Windows 는 Docker 를 설치하기 전에 띄운 트레이가 새 PATH 를 모른다
+DOCKER_PLACES = (
+    [Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "Docker" / "Docker" / "resources" / "bin" / "docker.exe"]
+    if IS_WIN
+    else [Path("/usr/local/bin/docker"), Path("/opt/homebrew/bin/docker"), Path("/Applications/Docker.app/Contents/Resources/bin/docker"), HOME / ".docker" / "bin" / "docker", HOME / ".orbstack" / "bin" / "docker", Path("/usr/bin/docker")]
+)
+
+
+def docker_bin() -> str | None:
+    found = shutil.which("docker")
+    if found:
+        return found
+    return next((str(x) for x in DOCKER_PLACES if x.exists()), None)
 
 
 def _run(args: list[str], timeout: float = 4) -> subprocess.CompletedProcess:
@@ -420,10 +439,11 @@ def parse_docker_ps(out: str) -> list[Row]:
 
 
 def collect_docker() -> list[Row]:
-    if time.time() < _DOCKER_OFF_UNTIL[0] or not shutil.which("docker"):
+    exe = docker_bin()
+    if time.time() < _DOCKER_OFF_UNTIL[0] or not exe:
         return []
     try:
-        res = _run(["docker", "ps", "--format", "{{json .}}"])
+        res = _run([exe, "ps", "--format", "{{json .}}"])
     except (OSError, subprocess.SubprocessError):
         res = None
     if res is None or res.returncode != 0:
@@ -787,7 +807,7 @@ def run_window() -> None:
         remember_killed(r.key)  # 직접 끈 것은 트레이가 "꺼짐" 알림을 보내지 않는다
         if r.container:
             # docker stop 은 10초까지 걸린다 — 기다리지 않고 보낸 뒤 나중에 다시 읽는다
-            subprocess.Popen(["docker", "stop", r.container], creationflags=NO_WINDOW if IS_WIN else 0, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.Popen([docker_bin() or "docker", "stop", r.container], creationflags=NO_WINDOW if IS_WIN else 0, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             root.after(3000, refresh)
             root.after(11000, refresh)
             return
@@ -1141,6 +1161,14 @@ def selftest() -> None:
         print(f"  {r.kind} | {r.name} | {r.where}")
     # 경로 → 프로젝트 이름
     assert _project_of(str(HOME / "dev" / "shop" / ".venv" / "bin" / "python")) == "shop"
+    # 명령 줄이기: 실행 파일 경로를 뗀다
+    for raw, want in (
+        (r"C:\Py\python.exe -m scripts.run", "-m scripts.run"),
+        (r"C:\Py\pythonw.exe app.pyw", "app.pyw"),
+        ("/usr/bin/python3.12 -m uvicorn x", "-m uvicorn x"),
+        (r'"C:\Program Files\nodejs\node.exe" vite', "vite"),
+    ):
+        assert _short_cmd(raw) == want, (raw, _short_cmd(raw))
     # Docker 출력 읽기
     sample = '{"ID":"3f2a9c1b7d4e","Names":"shop-db","Image":"postgres:16","Ports":"0.0.0.0:5432->5432/tcp, :::5432->5432/tcp","Status":"Up 2 hours","CreatedAt":"2026-01-01 10:00:00 +0900 KST"}'
     d = parse_docker_ps(sample)
